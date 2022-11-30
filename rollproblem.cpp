@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
+#include <random>
 using namespace std;
 
 
@@ -14,6 +14,12 @@ bool debug = false;
 vector<vector<int>> acotrsAllowed;
 vector<vector<int>> graph;
 vector<int> assigned;
+auto rng = default_random_engine {};
+
+
+bool contains(vector<int> vec, int num){
+  return find(vec.begin(), vec.end(), num) != vec.end();
+}
 
 void readRollbesattningsProblem() {
   cin >> n >> s >> k;
@@ -52,7 +58,8 @@ void readRollbesattningsProblem() {
           // if we can not find role2 inside graph[role1]
           // then we add role2 to graph[role1]
           //cout << " checking if graph at index " << role1-1 << " has a list that contains element with name " << role2;
-          if(find(graph[role1-1].begin(), graph[role1-1].end(), role2) == graph[role1-1].end()){
+          //if(find(graph[role1-1].begin(), graph[role1-1].end(), role2) == graph[role1-1].end()){
+          if(!contains(graph[role1-1], role2)){
             // can not find
             graph[role1-1].push_back(role2);
             //cout << " ADDING: node " << role1 << " has neighbor " << role2 << "\n";
@@ -65,13 +72,51 @@ void readRollbesattningsProblem() {
   }
 }
 
+
 void solveAssignmentProblem(){
   // add zeroes (superskådisar) at all places
   for (int i = 0; i < n; i++) {
     assigned.push_back(0);
   }
   // add divas
-  
+
+  vector<int> randomNumbers(n);
+  for (int i = 0; i < n; i++) {
+    randomNumbers.push_back(i);
+  }
+
+  shuffle(begin(randomNumbers), end(randomNumbers), rng);
+  for (int rand : randomNumbers){
+    cout << rand;
+  }
+  cout << "\n";
+
+  int diva1place;
+  int diva2place;
+
+  for (int el1 : randomNumbers){
+    if(contains(acotrsAllowed[el1], 1)){ // if allowed actor is diva's name is '1'
+      diva1place = el1;
+      // when the first diva is assigned, we try to place the second diva!
+      for (int el2 : randomNumbers){
+        if(el1 == el2){
+          continue;
+        }
+        if(contains(acotrsAllowed[el2], 2)){ // if allowed actor is diva's name '2'
+          if(!contains(graph[el2], el1)){ // places to put divas on are NOT next to each other! Good!
+            diva2place = el2;
+            cout << "ASSIGNING DIVAS COMPLETE!\n";
+            cout << "diva1place = " << diva1place <<"\n" ;
+            cout << "diva2place = "<< diva2place <<"\n";
+            goto afterDivaLoop;
+          } 
+        }
+      }
+    }
+  }
+  afterDivaLoop:
+    assigned[diva1place]=1;
+    assigned[diva2place]=2;
 
 }
 
@@ -86,6 +131,8 @@ void printAcotrsAllowed(){
   }
 }
 
+
+
 void printGraph(){
 
   for(int i=0;i<n;i++){
@@ -97,7 +144,14 @@ void printGraph(){
   }
 }
 
+void printAssigned(){
 
+  cout << "assigned: ";
+  for(int i=0; i<n; i++){
+    cout << assigned[i] << " ";
+  }
+  cout << "\n";
+}
 
 void printSolution() {
   cout << "executing printsolution" << "\n";
@@ -143,6 +197,8 @@ int main(void) {
   printGraph();
 
   solveAssignmentProblem();
+
+  printAssigned();
 
   // cout << n << " " << s << " " << k << "\n";
 
