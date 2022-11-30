@@ -86,10 +86,10 @@ void solveAssignmentProblem(){
   }
 
   shuffle(begin(randomNumbers), end(randomNumbers), rng);
-  for (int rand : randomNumbers){
-    cout << rand;
-  }
-  cout << "\n";
+  // for (int rand : randomNumbers){
+  //   cout << rand;
+  // }
+  // cout << "\n";
 
   int diva1place;
   int diva2place;
@@ -105,9 +105,6 @@ void solveAssignmentProblem(){
         if(contains(acotrsAllowed[el2], 2)){ // if allowed actor is diva's name '2'
           if(!contains(graph[el2], el1)){ // places to put divas on are NOT next to each other! Good!
             diva2place = el2;
-            cout << "ASSIGNING DIVAS COMPLETE!\n";
-            cout << "diva1place = " << diva1place <<"\n" ;
-            cout << "diva2place = "<< diva2place <<"\n";
             goto afterDivaLoop;
           } 
         }
@@ -154,21 +151,73 @@ void printAssigned(){
 }
 
 void printSolution() {
-  cout << "executing printsolution" << "\n";
-  int actorsWithRolls = n;
-  int actorNumber = -1;
-  int numberOfRollesPlayedByActor = 0;
-  int roll = -1;
+  int uniqueActors = 0;
+  // int actorNumber = -1;
+  // int numberOfRollesPlayedByActor = 0;
+  // int roll = -1;
 
-  cout << actorsWithRolls << "\n";
+  // get number of unique actors in assigned
 
-  for (int i = 0; i < actorsWithRolls; i++) {
-    cout << actorNumber << " " << numberOfRollesPlayedByActor << " ";
-    for (int j = 0; j < numberOfRollesPlayedByActor; j++) {
-      cout << roll; 
-    }
-    cout << "\n";
+
+  vector<int> assignedCopy;
+  for (int i : assigned){
+    assignedCopy.push_back(i);
   }
+
+  auto last = unique(assignedCopy.begin(), assignedCopy.end());
+  assignedCopy.erase(last, assignedCopy.end());  
+  uniqueActors = assignedCopy.size();
+
+  int numZeroes = 0;
+  for (int i : assigned){
+    // assigned: 1 2 0 
+    if(i == 0){
+      numZeroes++;
+    }
+  }
+
+  if(numZeroes > 1){
+    uniqueActors += numZeroes-1; // we must add the zeroes that we did not already count with the unique() method
+  }
+
+  cout << uniqueActors << "\n";
+
+
+  // create datastructure for the answer structure
+  vector<vector<int>> answerVector(k+1);
+  for(int i=0; i < k+1; i++){ // length is num skådisar including the superskådis-type
+    answerVector.push_back(vector<int>());
+  }
+  
+  for (int roll=0; roll<n; roll++){
+    answerVector[assigned[roll]].push_back(roll+1);
+  }
+
+  for (int i=1; i<k+1; i++){
+    if(!answerVector[i].empty()){
+      cout << i << " " << answerVector[i].size() << " ";
+      for(int role : answerVector[i]){
+        cout << role << " ";
+      }
+      cout << "\n";
+    }    
+  }
+
+  // number of superduperskådisar
+  // cout << answerVector[0].size();
+
+  for(int i = 0; i < answerVector[0].size(); i++){
+    cout << k+1+i << " " << 1 << " " << answerVector[0][i] << "\n";
+  }
+
+
+  // for (int i = 0; i < actorsWithRolls; i++) {
+  //   cout << actorNumber << " " << numberOfRollesPlayedByActor << " ";
+  //   for (int j = 0; j < numberOfRollesPlayedByActor; j++) {
+  //     cout << roll; 
+  //   }
+  //   cout << "\n";
+  // }
 
   cout.flush();
 }
@@ -192,17 +241,16 @@ int main(void) {
 
   readRollbesattningsProblem();
 
-  //printSolution();
-
-  printGraph();
+  //printGraph();
 
   solveAssignmentProblem();
 
-  printAssigned();
+  //printAssigned();
 
-  // cout << n << " " << s << " " << k << "\n";
+  printSolution();
 
 /*
+
 3
 2
 3
@@ -211,6 +259,7 @@ int main(void) {
 3 1 2 3
 2 1 3
 2 2 3
+
 */
 
   cout.flush();
