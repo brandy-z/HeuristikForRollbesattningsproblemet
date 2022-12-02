@@ -77,7 +77,7 @@ void readRollbesattningsProblem() {
 }
 
 
-void solveAssignmentProblem(){
+void createInitialSolution(){
   // add zeroes (superskådisar) at all places
   for (int i = 0; i < n; i++) {
     assigned.push_back(0);
@@ -165,9 +165,17 @@ void printAssigned(){
 -5 means that newActor is diva1 and tries to play next to diva2
 -6 means that newActor is diva2 and tries to play next to diva1
 */
-int validateSwitch(int prevActor, int newActor, int role){
+int validateAssignment(int newActor, int role){
   // can newActor replace prevACtor for playing role?
   // assume that newActor is able to play the role according to acotrsAllowed
+
+
+  int prevActor = assigned[role-1];
+  
+  //cout << "validate switch between :\n"; 
+  //cout << "oldactor: " << prevActor << "\n";
+  //cout << "newactor: " << newActor << "\n";
+  //cout << "role: " << role << "\n";
 
   if(prevActor == newActor){
     return -3;
@@ -220,17 +228,6 @@ int validateSwitch(int prevActor, int newActor, int role){
 
 }
 
-void improve(){
-  
-  /*
-  for each role r
-    for each actor a that can play r 
-      if valid to have a play r:
-        if using a for r → fewer actors in total
-	  			use actor a for role rW
-                        
-*/
-}
 
 int countUniqueActors(){
 
@@ -260,6 +257,68 @@ int countUniqueActors(){
   }
 
   return uniqueActors;
+}
+
+
+void improveSolution(){
+
+  int numActorsCurrentlyUsed = countUniqueActors();
+  
+  /*
+  for each role r
+    for each actor a that can play r 
+      if valid to have a play r:
+        if using a for r → fewer or same actors in total
+	  			use actor a for role rW
+                        
+  */
+ // TODO: shuffle roles before start to assign
+  int oldActor = -1;
+
+  bool convergence = false;
+  while(!convergence){
+    convergence = true;
+    for(int r=0; r<n; r++){
+      for(int a : acotrsAllowed[r]){ // a can play r
+        if(validateAssignment(a, r+1) > 0){
+          //cout << "validation passed ok \n";
+          oldActor = assigned[r]; 
+          assigned[r] = a; // PERFORM SWITCH!!
+          int newNumActorsCurrentlyUsed = countUniqueActors();
+          if(newNumActorsCurrentlyUsed > numActorsCurrentlyUsed){
+            // we have worsened the amount of actors :(
+            // so we switch back the old actor! come back!
+            assigned[r] = oldActor;
+            // cout << "\n";
+            // cout << "we have done nothing with: \n";
+            // cout << "oldactor" << oldActor << "\n";
+            // cout << "newactor" << a << "\n";
+            // cout << "role" << r << "\n";
+            // cout << "\n";
+          }else if(newNumActorsCurrentlyUsed < numActorsCurrentlyUsed){
+            numActorsCurrentlyUsed = newNumActorsCurrentlyUsed; // update highscore!
+            convergence = false;
+            //cout << "\n";
+            //cout << "we have made an improvement switch where: \n";
+            //cout << "oldactor: " << oldActor << "\n";
+            //cout << "newactor: " << a << "\n";
+            //cout << "role: " << r+1 << "\n";
+            //cout << "\n";
+          //}else{
+            //cout << "\n";
+            //cout << "we have made a no-improvement switch where: \n";
+            //cout << "oldactor: " << oldActor << "\n";
+            //cout << "newactor: " << a << "\n";
+            //cout << "role: " << r+1 << "\n";
+            //cout << "\n";
+          }
+        }
+      }
+    }
+  }
+  
+
+
 }
 
 
@@ -331,16 +390,18 @@ int main(void) {
 
   //printGraph();
 
-  solveAssignmentProblem();
+  createInitialSolution();
 
-  printAssigned();
+  improveSolution();
 
-  //printSolution();
+  //printAssigned();
 
-  int newActor = 0;
-  int role = 1;
-  int prevActor = assigned[role-1];
-  cout << " can switch? " << validateSwitch(prevActor, newActor, role) << "\n";
+  printSolution();
+
+  //int newActor = 0;
+  //int role = 1;
+  //int prevActor = assigned[role-1];
+  //cout << " can switch? " << validateAssignment(prevActor, newActor, role) << "\n";
   
 
 /*
