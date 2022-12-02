@@ -1,6 +1,3 @@
-
-
-
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -8,28 +5,28 @@
 
 using namespace std;
 
-
 // n = roller, s = scener, k = skådisar
 int n, s, k;
-bool debug = false;
+
 vector<vector<int>> acotrsAllowed;
 vector<vector<int>> graph;
 vector<int> assigned;
+
 auto rng = default_random_engine {};
 int numRolesDiva1 = 1;
 int numRolesDiva2 = 1;
 
-
-
+// helper function
 bool contains(vector<int> vec, int num){
   return find(vec.begin(), vec.end(), num) != vec.end();
 }
 
+// read from kattis
+// build acotrsAllowed, which actor can play which role
+// build graph, which is a neighbor list of which roles play in the same scenes
 void readRollbesattningsProblem() {
   cin >> n >> s >> k;
 
-  //vector<vector<int>> acotrsAllowed(n+1); // handle 1 indexing
-  
   for (int i = 0; i < n; i++) {
     acotrsAllowed.push_back(vector<int>());
       
@@ -38,7 +35,6 @@ void readRollbesattningsProblem() {
     for (int j = 0; j < numPossibleActors; j++) {
       int p;
       cin >> p;
-
       acotrsAllowed[i].push_back(p);
     }
   }
@@ -61,40 +57,32 @@ void readRollbesattningsProblem() {
         if (role1 != role2){
           // if we can not find role2 inside graph[role1]
           // then we add role2 to graph[role1]
-          //cout << " checking if graph at index " << role1-1 << " has a list that contains element with name " << role2;
-          //if(find(graph[role1-1].begin(), graph[role1-1].end(), role2) == graph[role1-1].end()){
           if(!contains(graph[role1-1], role2)){
             // can not find
             graph[role1-1].push_back(role2);
-            //cout << " ADDING: node " << role1 << " has neighbor " << role2 << "\n";
           }
         }
       }
     }
     rolesInSameScene.clear();
-      
   }
 }
 
-
+// update "assigned" with the initial soltion, containing divas and superskådisar 
 void createInitialSolution(){
   // add zeroes (superskådisar) at all places
   for (int i = 0; i < n; i++) {
     assigned.push_back(0);
   }
-  // add divas
 
+  // add divas
   vector<int> randomNumbers(n);
   for (int i = 0; i < n; i++) {
     randomNumbers.push_back(i);
   }
 
+  // attempt to place the divas on random-order locations, eventually try all locations until fit
   shuffle(begin(randomNumbers), end(randomNumbers), rng);
-  // for (int rand : randomNumbers){
-  //   cout << rand;
-  // }
-  // cout << "\n";
-
   int diva1place;
   int diva2place;
 
@@ -119,11 +107,9 @@ void createInitialSolution(){
   afterDivaLoop:
     assigned[diva1place]=1;
     assigned[diva2place]=2;
-
 }
 
 void printAcotrsAllowed(){
-
   for(int i=0;i<n;i++){
     cout << "role " << i << " can be played by actors: ";
     for(int h = 0; h < acotrsAllowed[i].size(); h++){
@@ -133,10 +119,7 @@ void printAcotrsAllowed(){
   }
 }
 
-
-
 void printGraph(){
-
   for(int i=0;i<n;i++){
     cout << "node " << i+1 << " has neighbors: ";
     for(int h = 0; h < graph[i].size(); h++){
@@ -147,7 +130,6 @@ void printGraph(){
 }
 
 void printAssigned(){
-
   cout << "assigned: ";
   for(int i=0; i<n; i++){
     cout << assigned[i] << " ";
@@ -169,13 +151,7 @@ int validateAssignment(int newActor, int role){
   // can newActor replace prevACtor for playing role?
   // assume that newActor is able to play the role according to acotrsAllowed
 
-
   int prevActor = assigned[role-1];
-  
-  //cout << "validate switch between :\n"; 
-  //cout << "oldactor: " << prevActor << "\n";
-  //cout << "newactor: " << newActor << "\n";
-  //cout << "role: " << role << "\n";
 
   if(prevActor == newActor){
     return -3;
@@ -225,10 +201,9 @@ int validateAssignment(int newActor, int role){
   }
 
   return 2;
-
 }
 
-
+// returns the number of actors used in the current assignment
 int countUniqueActors(){
 
   int uniqueActors = 0;
@@ -243,7 +218,6 @@ int countUniqueActors(){
   auto last = unique(assignedCopy.begin(), assignedCopy.end());
   assignedCopy.erase(last, assignedCopy.end());  
   uniqueActors = assignedCopy.size();
-
   
   int numZeroes = 0;
   for (int i : assigned){
@@ -262,20 +236,19 @@ int countUniqueActors(){
 
 void improveSolution(){
 
-  int numActorsCurrentlyUsed = countUniqueActors();
-  
   /*
   for each role r
     for each actor a that can play r 
       if valid to have a play r:
         if using a for r → fewer or same actors in total
-	  			use actor a for role rW
-                        
+	  			use actor a for role r
   */
- // TODO: shuffle roles before start to assign
-  int oldActor = -1;
 
+  int numActorsCurrentlyUsed = countUniqueActors();
+  
+  int oldActor = -1;
   bool convergence = false;
+  
   while(!convergence){
     convergence = true;
     for(int r=0; r<n; r++){
@@ -289,46 +262,22 @@ void improveSolution(){
             // we have worsened the amount of actors :(
             // so we switch back the old actor! come back!
             assigned[r] = oldActor;
-            // cout << "\n";
-            // cout << "we have done nothing with: \n";
-            // cout << "oldactor" << oldActor << "\n";
-            // cout << "newactor" << a << "\n";
-            // cout << "role" << r << "\n";
-            // cout << "\n";
           }else if(newNumActorsCurrentlyUsed < numActorsCurrentlyUsed){
             numActorsCurrentlyUsed = newNumActorsCurrentlyUsed; // update highscore!
             convergence = false;
-            //cout << "\n";
-            //cout << "we have made an improvement switch where: \n";
-            //cout << "oldactor: " << oldActor << "\n";
-            //cout << "newactor: " << a << "\n";
-            //cout << "role: " << r+1 << "\n";
-            //cout << "\n";
-          //}else{
-            //cout << "\n";
-            //cout << "we have made a no-improvement switch where: \n";
-            //cout << "oldactor: " << oldActor << "\n";
-            //cout << "newactor: " << a << "\n";
-            //cout << "role: " << r+1 << "\n";
-            //cout << "\n";
           }
         }
       }
     }
   }
-  
-
-
 }
-
 
 void printSolution() {
 
   int uniqueActors = countUniqueActors();
-
   cout << uniqueActors << "\n";
 
-  // create datastructure for the answer structure
+  // create datastructure for the answer for kattis
   vector<vector<int>> answerVector(k+1);
   for(int i=0; i < k+1; i++){ // length is num skådisar including the superskådis-type
     answerVector.push_back(vector<int>());
@@ -348,26 +297,12 @@ void printSolution() {
     }    
   }
 
-  // number of superduperskådisar
-  // cout << answerVector[0].size();
-
   for(int i = 0; i < answerVector[0].size(); i++){
     cout << k+1+i << " " << 1 << " " << answerVector[0][i] << "\n";
   }
 
-
-  // for (int i = 0; i < actorsWithRolls; i++) {
-  //   cout << actorNumber << " " << numberOfRollesPlayedByActor << " ";
-  //   for (int j = 0; j < numberOfRollesPlayedByActor; j++) {
-  //     cout << roll; 
-  //   }
-  //   cout << "\n";
-  // }
-
   cout.flush();
 }
-
-
 
 
 int main(void) {
@@ -376,85 +311,12 @@ int main(void) {
   std::ios::sync_with_stdio(false);
   cin.tie(0);
 
-
-  // if (debug){
-  //   vector<int> v1 = {1,2,3,4};
-
-  //   cout << "did not find element 2, should be false " << (find(v1.begin(), v1.end(), 2) == v1.end()) << "\n";
-  //   cout << "did not find element 5, should be true " << (find(v1.begin(), v1.end(), 5) == v1.end()) << "\n";
-  //   cout << "find element 2, should be true " << (find(v1.begin(), v1.end(), 2) != v1.end()) << "\n";
-  //   cout << "find element 5, should be false " << (find(v1.begin(), v1.end(), 5) != v1.end()) << "\n";
-  // }
-
   readRollbesattningsProblem();
-
   //printGraph();
-
   createInitialSolution();
-
   improveSolution();
-
   //printAssigned();
-
   printSolution();
-
-  //int newActor = 0;
-  //int role = 1;
-  //int prevActor = assigned[role-1];
-  //cout << " can switch? " << validateAssignment(prevActor, newActor, role) << "\n";
-  
-
-/*
-
-3
-2
-2
-2 1 2 
-2 1 2 
-2 1 2 
-2 1 2
-2 2 3
-
-3
-2
-2
-2 1 2 
-2 1 2 
-2 1 2 
-2 1 2
-2 2 3
-
-
-3 = roller
-2 = scener
-2 = skådisar
-2 1 2 = roll 1 kan spelas av skådis 1 och 2
-2 1 2 = roll 2 kan spelas av skådis 1 och 2 
-2 1 2 = roll 3 kan spelas av skådis 1 och 2 
-2 1 2 = finns kant mellan 1 och 2
-2 2 3 = finns kant mellan 2 och 3
-
-3
-2
-5
-5 1 2 3 4 5
-5 1 2 3 4 5
-5 1 2 3 4 5
-2 1 2 
-2 2 3
-
-3
-4
-5
-1 2 
-2 1 2 
-2 1 2 
-2 1 2 
-2 2 3
-2 1 2 
-2 2 3
-
-*/
 
   cout.flush();
   return 0;
