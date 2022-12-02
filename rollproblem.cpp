@@ -5,6 +5,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+
 using namespace std;
 
 
@@ -103,8 +104,9 @@ void solveAssignmentProblem(){
           continue;
         }
         if(contains(acotrsAllowed[el2], 2)){ // if allowed actor is diva's name '2'
-          if(!contains(graph[el2], el1)){ // places to put divas on are NOT next to each other! Good!
+          if(!contains(graph[el2], el1+1)){ // places to put divas on are NOT next to each other! Good!
             diva2place = el2;
+            // cout << "placed divas!! on places (1-indexed) " << diva1place+1 << " and " << diva2place+1 << "\n";
             goto afterDivaLoop;
           } 
         }
@@ -150,6 +152,7 @@ void printAssigned(){
   cout << "\n";
 }
 
+
 void printSolution() {
   int uniqueActors = 0;
   // int actorNumber = -1;
@@ -163,6 +166,8 @@ void printSolution() {
   for (int i : assigned){
     assignedCopy.push_back(i);
   }
+
+  sort(assignedCopy.begin(), assignedCopy.end());
 
   auto last = unique(assignedCopy.begin(), assignedCopy.end());
   assignedCopy.erase(last, assignedCopy.end());  
@@ -258,6 +263,45 @@ int main(void) {
 3 1 2 3
 3 1 2 3
 2 1 3
+2 2 3
+
+3
+2
+2
+2 1 2 
+2 1 2 
+2 1 2 
+2 1 2
+2 2 3
+
+
+3 = roller
+2 = scener
+2 = skådisar
+2 1 2 = roll 1 kan spelas av skådis 1 och 2
+2 1 2 = roll 2 kan spelas av skådis 1 och 2 
+2 1 2 = roll 3 kan spelas av skådis 1 och 2 
+2 1 2 = finns kant mellan 1 och 2
+2 2 3 = finns kant mellan 2 och 3
+
+3
+2
+5
+5 1 2 3 4 5
+5 1 2 3 4 5
+5 1 2 3 4 5
+2 1 2 
+2 2 3
+
+3
+4
+5
+1 2 
+2 1 2 
+2 1 2 
+2 1 2 
+2 2 3
+2 1 2 
 2 2 3
 
 */
