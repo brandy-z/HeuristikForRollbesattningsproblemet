@@ -16,6 +16,9 @@ vector<vector<int>> acotrsAllowed;
 vector<vector<int>> graph;
 vector<int> assigned;
 auto rng = default_random_engine {};
+int numRolesDiva1 = 1;
+int numRolesDiva2 = 1;
+
 
 
 bool contains(vector<int> vec, int num){
@@ -152,16 +155,87 @@ void printAssigned(){
   cout << "\n";
 }
 
+/*
+ 2 means that all checks passed so we should be able to switch
+ 1 means superskodis can automatically play the role
+-1 means diva1 is being eliminated (prevActor can't be replaced at all)
+-2 means diva2 is being eliminated (prevActor can't be replaced at all)
+-3 means attempting to switch actor with same actor (superskodis)
+-4 meain that the neigbor is the same actor as newActor
+-5 means that newActor is diva1 and tries to play next to diva2
+-6 means that newActor is diva2 and tries to play next to diva1
+*/
+int validateSwitch(int prevActor, int newActor, int role){
+  // can newActor replace prevACtor for playing role?
+  // assume that newActor is able to play the role according to acotrsAllowed
 
-void printSolution() {
+  if(prevActor == newActor){
+    return -3;
+  }
+
+  // diva check must be first
+  if (prevActor == 1){
+    if (numRolesDiva1 <= 1){ 
+      return -1; // can't remove the last diva!
+    }
+  }
+  
+  if (prevActor == 2){
+    if (numRolesDiva1 <= 1){ 
+      return -2; // can't remove the last diva!
+    }
+  }
+
+  if(newActor==0){
+    return 1; // superskodis can always play the role
+  }
+
+  // TODO: might be role-1
+  for(int neigborRole : graph[role-1]){
+    // who plays me?
+    if(assigned[neigborRole-1] == newActor){
+      return -4;
+    }
+  }
+
+  if(newActor == 1){
+    for(int neigborRole : graph[role-1]){
+      // who plays me?
+      if(assigned[neigborRole-1] == 2){
+        return -5;
+      }
+    }
+  }
+
+  if(newActor == 2){
+    for(int neigborRole : graph[role-1]){
+      // who plays me?
+      if(assigned[neigborRole-1] == 1){
+        return -6;
+      }
+    }
+  }
+
+  return 2;
+
+}
+
+void improve(){
+  
+  /*
+  for each role r
+    for each actor a that can play r 
+      if valid to have a play r:
+        if using a for r → fewer actors in total
+	  			use actor a for role rW
+                        
+*/
+}
+
+int countUniqueActors(){
+
   int uniqueActors = 0;
-  // int actorNumber = -1;
-  // int numberOfRollesPlayedByActor = 0;
-  // int roll = -1;
-
-  // get number of unique actors in assigned
-
-
+  
   vector<int> assignedCopy;
   for (int i : assigned){
     assignedCopy.push_back(i);
@@ -173,9 +247,9 @@ void printSolution() {
   assignedCopy.erase(last, assignedCopy.end());  
   uniqueActors = assignedCopy.size();
 
+  
   int numZeroes = 0;
   for (int i : assigned){
-    // assigned: 1 2 0 
     if(i == 0){
       numZeroes++;
     }
@@ -185,8 +259,15 @@ void printSolution() {
     uniqueActors += numZeroes-1; // we must add the zeroes that we did not already count with the unique() method
   }
 
-  cout << uniqueActors << "\n";
+  return uniqueActors;
+}
 
+
+void printSolution() {
+
+  int uniqueActors = countUniqueActors();
+
+  cout << uniqueActors << "\n";
 
   // create datastructure for the answer structure
   vector<vector<int>> answerVector(k+1);
@@ -228,6 +309,8 @@ void printSolution() {
 }
 
 
+
+
 int main(void) {
   // Två trick för att göra cin/cout lite snabbare.
   // Se http://kattis.csc.kth.se/doc/iostreamio
@@ -250,19 +333,25 @@ int main(void) {
 
   solveAssignmentProblem();
 
-  //printAssigned();
+  printAssigned();
 
-  printSolution();
+  //printSolution();
+
+  int newActor = 0;
+  int role = 1;
+  int prevActor = assigned[role-1];
+  cout << " can switch? " << validateSwitch(prevActor, newActor, role) << "\n";
+  
 
 /*
 
 3
 2
-3
-3 1 2 3
-3 1 2 3
-3 1 2 3
-2 1 3
+2
+2 1 2 
+2 1 2 
+2 1 2 
+2 1 2
 2 2 3
 
 3
